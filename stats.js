@@ -49,7 +49,7 @@ function draw_current_state() {
     let temp_floor = q_top;
 
     // state #
-    let state_str = enumerateState(fa.q).toString();
+    let state_str = fa.q.state.toString();
     let step_size = 110;
     for (let i = step_size - 1; i < state_str.length; i += step_size) {
         state_str = state_str.substring(0, i) + "\n" + state_str.substring(i);
@@ -742,93 +742,6 @@ function draw_head_transition() {
         ];
     }
     
-    // let up = enumerateDirection(ARROW_UP);
-    // let down = enumerateDirection(ARROW_DOWN);
-    // let left = enumerateDirection(ARROW_LEFT);
-    // let right = enumerateDirection(ARROW_RIGHT);
-
-    // let states = [
-    //     [
-    //         null,
-    //         {
-    //             state: right,
-    //             transitions: [
-    //                 {
-    //                     to: down,
-    //                     input: ARROW_DOWN,
-    //                 },
-    //                 {
-    //                     to: right,
-    //                     input: ARROW_RIGHT,
-    //                 }
-    //             ],
-    //             subtext: "Right",
-    //             start: fa.q.state == START_STATE
-    //         }
-    //     ],
-    //     [
-    //         {
-    //             state: left,
-    //             transitions: [
-    //                 {
-    //                     to: down,
-    //                     input: ARROW_DOWN,
-    //                 },
-    //                 {
-    //                     to: left,
-    //                     input: ARROW_LEFT,
-    //                 }
-    //             ],
-    //             subtext: "Left"
-    //         },
-    //         {
-    //             state: down,
-    //             transitions: [
-    //                 {
-    //                     to: down,
-    //                     input: ARROW_DOWN,
-    //                 },
-    //                 {
-    //                     to: right,
-    //                     input: ARROW_RIGHT,
-    //                 },
-    //                 {
-    //                     to: left,
-    //                     input: ARROW_LEFT,
-    //                 }
-    //             ],
-    //             subtext: "Down"
-    //         }
-    //     ]
-    // ];
-
-    // // current state
-    // let current_state;
-    // for (let i = 0; i < states.length; i++) {
-    //     for (let j = 0; j < states[i].length; j++) {
-    //         if (states[i][j].state == enumerateDirection(fa.q.direction)) {
-    //             current_state = states[i][j];
-    //         }
-            
-    //     }
-    // }
-    // current_state.focus = true;
-    // // last transition
-    // let last_transition;
-    // for (let i = 0; i < states.length; i++) {
-    //     for (let j = 0; j < states[i].length; j++) {
-    //         if (enumerateDirection(fa.last_q.direction) == states[i][j].state) {
-    //             for (let t = 0; t < states[i][j].transitions.length; t++) {
-    //                 if (states[i][j].transitions[t].to == current_state.state) {
-    //                     last_transition = states[i][j].transitions[t];
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
-    // last_transition.focus = true;
-    // // last transition input
-    // last_transition.input = fa.input;
     const params = {
         title: "Snake Head",
         left: head_window_left,
@@ -1293,6 +1206,7 @@ function draw_node(node) {
         noStroke();
         fill(0);
         textAlign(CENTER, CENTER);
+        textSize(node.w * 0.15);
         text(node.options.subtext, node.x, node.y + node.w * 0.3);
         pop();
     }
