@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Snake Finite Automaton</title>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    <!-- p5js -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+    <!-- mathjax -->
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+  </head>
+
+  <body>
+    <intro>
+      <h1>Snake Game Finite Automaton.</h1>
+
+      <h2>Goal.</h2>
+      Construct a finite automaton representing the snake game. The automaton should accept the language 
+      \(L = \{ w \in \{ \text{↑, →, ↓, ←, ␀} \}^* | \text{the string } w \text{ is a series of inputs that play the snake game exactly to completion} \} \). 
+
+      <h2>Rules.</h2>
+      The snake moves about the \(42 \times 24\) board and collects apples without running into itself or the walls. Whenever the snake collects an apple, the player scores 5 points and the snake grows in length by 5.
+
+      <h2>Finite Automaton.</h2>
+
+      <h3>Input.</h3>
+      The alphabet \(\Sigma\) accepts 5 input characters:
+
+      <br/>
+
+      <div id="inputs" style="margin: 10px 0 10px 20px; width: 500px; display: inline-block;">
+        <left>NUL</left><right>no input, continue current direction</right>
+        <left>←</left><right>left arrow key, move left</right>
+        <left>→</left><right>right arrow key, move right</right>
+        <left>↑</left><right>up arrow key, move up</right>
+        <left>↓</left><right>down arrow key, move down</right>
+      </div>
+
+      <br/>
+
+      Each character in the input string represents the input for a game tick. The NUL character represents a game tick where the player has entered no new direction.
+
+      <h3>States And Transitions.</h3>
+      The finite automaton's state is separated into several parts, each with their own set of states and transitions:
+
+      <h4 id="points">Points.</h4>
+      The snake starts at 0 points, and increases by 5 points each time it eats an apple. The snake starts at a size of 1 (just its head), and increases by 5 pixels over the duration of the next five game ticks, at a rate of one pixel per game tick. Because the snake only grows by 1 pixel per game tick, it is possible for the snake to have eaten more than \( ⌊\frac{w \times h - 1}{5}⌋ \) apples while accruing a large number of incoming tail pixels before engulfing the entire board. A state could theoretically occur where the snake, from its starting size of 1, eats an apple every game tick for \( w \times h - 1 = 1007 \) game ticks in a row. Thus, the finite automaton keeps track of \( w \times h - 1 + 1 = 1008 \) states, where the first state \(q_0\) represents 0 points and the 1008th state \(q_{1007}\) represents \( (w \times h - 1) \times 5 = 5035 \) points.
+
+      \begin{array}{cc}
+        Q_\text{points} = \{ 0, 1, \ldots , 1007 \}
+      \end{array}
+
+      The \(i\)th state \(q_i\), representing \( i \times 5 \) points, transitions to itself if the snake doesn't eat an apple, or the next state \(q_{i+1}\) if the snake eats an apple.
+
+      \begin{array}{cc}
+        \delta_\text{points} : Q_\text{points} \times \{ \text{snake eats apple}, \text{snake does not eat apple} \} \to Q_\text{points}
+      \end{array}
+
+      <br/>
+      \begin{array}{lcl}
+        \delta_\text{points}(q_{\text{points } i}, \text{snake does not eat apple}) & \to & q_{\text{points } i} \\
+        \delta_\text{points}(q_{\text{points } i}, \text{snake eats apple}) & \to & q_{\text{points } i+1}
+      \end{array}
+
+      <h4 id="direction">Direction.</h4>
+      The snake can move up, right, left, and down. The direction is represented with a state for each: four states in total.
+
+      \begin{array}{cc}
+        Q_\text{direction} = \{ ↑, →, ↓, ← \}
+      \end{array}
+
+      If the input direction is perpendicular to the direction the snake is already going, the snake's direction will transition to the input direction.
+      <br/>
+      The direction does not change if the input direction is either NUL, the direction the snake is already moving, or the direction opposite of the direction the snake is moving. 
+
+      \begin{array}{cc}
+        \delta_\text{direction} : Q_\text{direction} \times \Sigma \to Q_\text{direction}
+      \end{array}
+
+      <br/>
+      \begin{array}{cl}
+        \delta_\text{direction}(q_{\text{direction }i}, \text{␀}) \to q_{\text{direction }i} & \\
+        \delta_\text{direction}(q_{\text{direction }i}, \sigma) \to q_{\text{direction }i} & \text{if } \sigma \text{ is the direction opposite } i \\
+        \delta_\text{direction}(q_{\text{direction }i}, \sigma) \to q_{\text{direction }\sigma} & \text{otherwise } (\sigma \perp i) \\
+      \end{array}
+
+      <h4 id="incoming_tail">Incoming Tail.</h4>
+      After a snake eats an apple, the snake's body increases in length by five pixels over the duration of the next five game ticks. Because a snake could eat an apple and then eat another apple within the next five game ticks, it could potentially have more than four incoming pixels at some point. A state could theoretically occur where a snake, from its starting size of 1, could eat an apple every game tick for 202 ticks in a row, adding 5 to and spending 1 from its incoming tail size each time, until the snake has a size of 203 and an incoming tail size of 808. Because the snake's maximum size is w \times h = 1008, the this leads to a maximum incoming tail size of 1008 - 203 = 805, and thus 805 + 1 = 806 states are used to keep track of incoming tail size. This is given by the formula 
+
+      \begin{array}{cc}
+        |Q_\text{incoming}| = ⌊(5 \text{ possible incoming points } - 1 \text{ used incoming point }) \times \frac{w \times h - 1 \text{ start size (head) }}{5 \text{ points per apple }}⌋ + 1
+      \end{array}
+
+      \begin{array}{cc}
+        Q_\text{incoming} = \{ 0, 1, \ldots, 805 \}
+      \end{array}
+
+      If the current state is the state representing an incoming tail of length \(i > 0\), \(q_i\), it will transition to \(q_{i-1}\) if the snake does not eat an apple.
+      \(q_0\) will transition to itself if the snake does not eat an apple.
+      For any \(q_i \in Q_\text{incoming}\), the snake transitions to \(q_4\) if the snake eats an apple.
+
+      \begin{array}{cc}
+        \delta_\text{incoming} : Q_\text{incoming} \times \{ \text{snake eats apple}, \text{snake does not eat apple} \} \to Q_\text{incoming}
+      \end{array}
+
+      <br/>
+      \begin{array}{lll}
+        \delta_\text{incoming}(q_{\text{incoming }0}, \text{snake does not eat apple}) & \to q_{\text{incoming }0} & \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake does not eat apple}) & \to q_{\text{incoming }i-1} & i \geq 1 \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}) & \to q_{\text{incoming }i+4} & i \leq 801 \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}) & \to q_{\text{incoming }805} & i \gt 801 \\
+      \end{array}
+
+      <h4 id="second_chance">Second Chance.</h4>
+      If a snake is about to hit a wall or itself, a second chance lasting one game tick is given, during which the snake does not move and the player has one more oppurtunity to move the snake away from the obstacle. Because the second chance acts as a boolean, two states are used.
+
+      \begin{array}{cc}
+        Q_\text{chance} = \{ \text{off}, \text{on} \}
+      \end{array}
+
+      If the second chance state is off, it transitions to on if the snake collides with an obstacle.
+      The second chance state always transitions to off if it does not collide with an obstacle.
+
+      \begin{array}{cc}
+        \delta_\text{chance} : Q_\text{chance} \times \{ \text{snake collides}, \text{snake does not collide} \} \to Q_\text{chance}
+      \end{array}
+      <br/>
+
+      \begin{array}{lll}
+        \delta_\text{chance}(q_{\text{chance } i}, \text{snake does not collide}) & \to q_\text{chance off} & q_{\text{chance } i} \in Q_\text{chance} \\
+        \delta_\text{chance}(q_{\text{chance off}}, \text{snake collides}) & \to q_\text{chance on} &
+      \end{array}
+
+      If the second chance state is on and the snake collides with an obstacle, the <a href="#combination">final automaton</a> \(Q\) transitions to its <a href="#accept">accept state</a>.
+
+      \begin{array}{lll}
+        \delta(q_{\text{chance on}}, \text{snake collides}) & \to q_\text{accept} & q_\text{accept} \in Q
+      \end{array}
+
+
+      <h4>Snake Head Position.</h4>
+      The position of the snake's head is kept track of using a list of states \(w \times h = 42 \times 24 = 1008\) long. The position represented by \(q_i\) is located at \((i \text{ mod } w, ⌊i \div w⌋\)).
+      <br/>
+      <br/>
+      Unless the snake collides with itself or a wall, the snake's head transitions one unit in the direction defined by the <a href="#direction">direction</a> state. If the snake does collide with itself or a wall, it will remain still for one game tick, as defined by the <a href="#second_chance">second chance</a> state.
+
+      <h4 id="apple_position">Apple Position.</h4>
+      Similar to head position, the apple's position is kept track of using a list of states \(w \times h = 42 \times 24 = 1008\) long. The apple represented by \(q_i\) is located at \((i \text{ mod } w, ⌊i \div w⌋\)).
+      
+      \begin{array}{cc}
+        Q_\text{apple} = \{ 0, 1, \ldots 1007 \}
+      \end{array}
+
+      The apple's position transitions to itself if the snake does not eat it, or transitions to a new pseudo-randomly generated open spot on the board if the snake does eat it.
+
+      \begin{array}{cc}
+        \delta_\text{apple} : Q_\text{apple} \times Q_\text{head} \to Q_\text{apple}
+      \end{array}
+      <br/>
+
+      \begin{array}{lll}
+        \delta_\text{apple}(q_{\text{apple } i}, q_{\text{head } j}) & \to q_{\text{apple } i} & \text{if } i \neq j \\
+        \delta_\text{apple}(q_{\text{apple } i}, q_{\text{head } j}) & \to q_{\text{apple } \texttt{new_apple}()} & \text{if } i = j
+      \end{array}
+
+      The pseudo-random generation is given by the algorithm:
+
+      <blockquote>
+        \(\texttt{new_apple} \text{ :}\)  <br/>
+        &nbsp;  \(\text{snake_body_length} = \text{points} - \text{incoming_tail}\) <br/>
+        &nbsp;  \(\text{open_spaces} = w \times h - \text{snake_body_length} - 1\) <br/>
+        &nbsp;  \(\text{apple_index} = \texttt{hash}(\text{open_spaces}, \text{state})\) <br/>
+        <br/>
+        &nbsp;  for \(y \in [0, h - 1]\)  <br/>
+        &nbsp;  &nbsp;  for \(x \in [0, w-1]\)  <br/>
+        &nbsp;  &nbsp;  &nbsp;  if \(x + y \times w ≤ \text{apple_index}\) <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  \(p = (x, y)\)  <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  if \(\text{snake_head} = p\) <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  \(\text{apple_index} = \text{apple_index} + 1\) <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  for \(i \in [0, \text{snake_body_length} - 1]\)  <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  if \(\text{snake_body}[i] = p\)  <br/>
+        &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;  \(\text{apple_index} = \text{apple_index} + 1\) <br/>
+        &nbsp;  \(\text{apple_position}.x = \text{apple_index mod} w\) <br/>
+        &nbsp;  \(\text{apple_position}.y = ⌊\text{apple_index} \div w\)⌋  <br/>
+        &nbsp;  return \(\text{apple_position}\)  <br/>
+      </blockquote>
+
+      <blockquote>
+        \(\texttt{hash}(\text{max}, n\)): <br/>
+        &nbsp;  if \(\text{max} = 1\) return \(0\) <br/>
+        &nbsp;  \(h = 0\) <br/>
+        &nbsp;  while \(n > 0\) <br/>
+        &nbsp;  &nbsp;  \(h = h + (n \text{ mod max}) \times 37 \text{ (radix)}\)  <br/>
+        &nbsp;  &nbsp;  \(n = ⌊n \div \text{ max}⌋\)  <br/>
+        &nbsp;  return \(h \text{ mod max}\)  <br/>
+      </blockquote>
+
+      Because the hash used for the new apple position relies partially on the old apple position, the apple position is initialized at (3, 0) before being reinitialized through new_apple.
+
+      <h4 id="body">Snake Body.</h4>
+      For the purpose of this section, the snake's body excludes the head.
+      <br/>
+      <br/>
+      The snake can have a body size of \([0, w \times h - 1]\) pixels. Its size can be represented by an automaton with 1008 states: 
+      \[
+        Q_\text{size} = \{ 0, 1, \ldots, 1007 \}
+      \]
+      Each pixel can be represented by its direction from the pixel preceding it, with the first pixel being preceded by the head. The number of states is therefore given by:
+      \[
+        |Q_\text{body}| = \sum_{i=0}^{|Q_\text{size}| - 1}{ |Q_\text{direction}|^i} = \sum_{i=0}^{1007}{ 4^i } = \frac{4^{1008} - 1}{3} \approx 2.508 E+606
+      \]
+      \[
+        Q_\text{body} = \bigcup\limits_{i=0}^{|Q_\text{size}| - 1}{[Q_\text{direction}]^i}
+      \]
+      
+      <br/>
+      <br/>
+      The body with size \(n \in Q_\text{size}\) can have a size-agnostic set of pixels represented by an \(n\)-digit quaternary number, where the \(i\)th digit represents the enumerated direction the snake was moving \(i - 1\) moves in the past. This representation is given by the algorithm:
+
+      <blockquote style="margin-top: 20px;">
+        \(\texttt{enumerate_representation}(\text{snake_body})\): <br/>
+        &nbsp;  \(n = 0\) <br/>
+        &nbsp;  for \(\text{index } i, \text{ enumerated direction } d \in \text{snake_body} \) <br/>
+        &nbsp;  &nbsp;  \(n = n + d \times 4^i\)  <br/>
+        &nbsp;  return \(n\)
+      </blockquote>
+      Note that the directions are enumerated \(q_0 = \text{↑}, q_1 = \text{→}, q_2 = \text{↓}, q_3 = \text{←}\). 
+      <br/>
+      <br/>
+
+      To offset the representations with size \(k \lt n\), the body with size \(n\) and representation \(r\) can enumerate to 
+      \[
+        q_{\text{body}(\text{size } n, \text{representation } r)} = r + \sum_{i=0}^{n - 1}{ 4^i } = r + \frac{4^n - 1}{3}
+      \]
+
+      If the snake enters the <a href="#second_chance">second chance</a> state, the snake's body transitions to itself. Otherwise, the snake's body will gain the pixel that was the snake's head the last game tick. If the <a href="#incoming_tail">incoming tail</a> is 0, the snake's body will lose the pixel at the end of its tail. The body's new state represents this new orientation.
+
+      \begin{array}{cc}
+        \delta_\text{body} : Q_\text{body} \times Q_\text{direction} \times Q_\text{incoming} \times Q_\text{chance} \to Q_\text{body}
+      \end{array}
+      <br/>
+
+      \begin{array}{llrclll}
+        \delta_\text{body}( & q_{\text{body } b}, q_{\text{direction }d}, q_{\text{incoming }i}, q_{\text{chance on}} & ) & \to & q_{\text{body } b} & & \\
+
+        \delta_\text{body}( & q_{\text{body } b}, q_{\text{direction }d}, q_{\text{incoming }i \geq 1}, q_{\text{chance off}} & ) & \to & q_{\text{body } 4 \times (b - o_n) + d + o_{n+1}} & n = \lfloor\log_4{(3b + 1)}\rfloor & o_n = \frac{4^n - 1}{3} \\
+
+        \delta_\text{body}( & q_{\text{body } b}, q_{\text{direction }d}, q_{\text{incoming }i = 0}, q_{\text{chance off}} & ) & \to & q_{\text{body } 4 \times ((b - o_n) \text{ mod } 4^{n-1}) + d + o_n} & n = \lfloor\log_4{(3b + 1)}\rfloor & o_n = \frac{4^n - 1}{3} \\
+      \end{array}
+
+      <h3 id="combination">Combining Parts.</h3>
+
+      The finite automata for each of these parts combine so that each state indicates the number of points, movement direction, incoming tail, second chance, apple position, snake head position, and snake body, for a total of:
+
+      \begin{array}{ccr}
+         & (w \times h - 1 + 1) & \text{points} \\
+         & 4 & \text{directions} \\
+         & ⌊(5 \text{ points} - 1 \text{ used point}) \times (\frac{w \times h - 1}{5} \text{ points per apple})⌋ + 1 & \text{incoming points} \\
+         & 2 & \text{second chance states} \\
+         & 1008 & \text{apple positions} \\
+         & 1008 & \text{head positions}\\
+        \times & \frac{4^{1008} - 1}{3} & \text{body states} \\
+        \hline
+         & 1008 & \text{points} \\
+         & 4 & \text{directions} \\
+         & 806 & \text{incoming points} \\
+         & 2 & \text{second chance states} \\
+         & 1008 & \text{apple positions} \\
+         & 1008 & \text{head positions}\\
+        \times & \frac{4^{1008} - 1}{3} & \text{body states} \\
+        \hline \\
+      \end{array}
+
+      16563672272219750403525322809157601712925344419975291428732222914102436064320502239029063366713812189588185946501561722485452187616891630802747565804184042568634789856993557761692333291866798808595060380019752197915128309883917492137179816589082536072062093640883082848738304670449442848432880350045409101902084552349842423537993374653390567505480762768500834468675948953728201690076158994534550340164557316532932150128341997857758810165219963431517272160694101665443825204072109190752166657509623924996785239391460075558835204727278770380388491825235557016441805249597906104888699461348226854091083203088058820601118720
+
+      \begin{array}{cc}
+          & & & & & & & & & & & & & & 1 & \text{accept state} & & & & & & & & & & & & & & \\
+        + & & & & & & & & & & & & & & 1 & \text{reject state} & & & & & & & & & & & & & & \\
+        \hline
+      \end{array}
+
+      16563672272219750403525322809157601712925344419975291428732222914102436064320502239029063366713812189588185946501561722485452187616891630802747565804184042568634789856993557761692333291866798808595060380019752197915128309883917492137179816589082536072062093640883082848738304670449442848432880350045409101902084552349842423537993374653390567505480762768500834468675948953728201690076158994534550340164557316532932150128341997857758810165219963431517272160694101665443825204072109190752166657509623924996785239391460075558835204727278770380388491825235557016441805249597906104888699461348226854091083203088058820601118722
+
+      \begin{array}{cc}
+        |Q| = 1008 \times 4 \times 806 \times 2 \times 1008 \times 1008 \times \frac{4^{1008} - 1}{3} + 1 + 1 \approx 1.812 E+619 \text{ states}
+      \end{array}
+
+      \begin{array}{cc}
+       Q = Q_\text{points} \times Q_\text{directions} \times Q_\text{incoming} \times Q_\text{chance} \times Q_\text{apple} \times Q_\text{head} \times Q_\text{body} \cup \{\text{accept}\} \cup \{\text{reject}\}
+      \end{array}
+
+      \begin{array}{cc}
+        \delta: Q \times \Sigma \to Q
+      \end{array}
+
+      <h3 id="enumeration">Enumerating States.</h3>
+      States are enumerated as follows:
+      \begin{array}{cc}
+       &  &  &  &  &  &  &  &  &  &  &  &  & q_{\text{snake_body}} \\
+       &  &  &  &  &  &  &  &  &  &  & q_{\text{head}} & \times & |Q_{\text{snake_body}}| \\
+       &  &  &  &  &  &  &  &  & q_{\text{apple}} & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+       &  &  &  &  &  &  & q_{\text{chance}} & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+       &  &  &  &  & q_{\text{incoming}} & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+       &  &  & q_{\text{direction}} & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+      + & q_{\text{points}} & \times & |Q_{\text{direction}}| & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+      \hline \\
+      \end{array}
+
+      \begin{array}{cc}
+        \text{subscript } i \text{ for current state }q_i
+      \end{array}
+      
+      Exceptions are the special <a href="#reject">reject state</a> and the <a href="#accept">accept state</a>, which are enumerated to \(|Q|-1\) and \(|Q|-2\) respectively.
+
+      <h3>Start State.</h3>
+      The finite automaton starts with the snake's head at position (1,1) \(q_{\text{head43}}\), direction right \(q_{\text{direction1}}\), no pixels in the incoming tail queue \(q_{\text{incoming0}}\), not on second chance \(q_{\text{chance0}}\), apple at (9, 8) \(q_{\text{apple345}}\), and no pixels in the snake's body \(q_{\text{snake_body0}}\). This maps to: q<subscript>4108925974003472556773404746808833763787617692495985444441148743688769654871379890896319949479361638064287131922455513105965401326299216806527210731096237857313165435920146766476351189771345822380699120818447825508077119369895428462409196769977258605605312902380229810044978492858059814417094769528986693047498998786305292043206924956711135743542042797261538201549417874193988912926794849482761771852157460461628595532708149461362055519630505538438469758357302393592109465778422183064354619614692808600292246479252744152223017655512046438783807376315126596298012468218343832191646560532271919661003104773832509541495</subscript>
+
+      <h3 id="accept">Accept State.</h3>
+      The finite automaton moves to its accept state when the game ends. This occurs when the snake is already on its second chance and hits itself or a wall. This is enumerated to the \(|Q|\) - 1 (<a href="#reject">reject state</a>) - 1:
+      q<subscript>16563672272219750403525322809157601712925344419975291428732222914102436064320502239029063366713812189588185946501561722485452187616891630802747565804184042568634789856993557761692333291866798808595060380019752197915128309883917492137179816589082536072062093640883082848738304670449442848432880350045409101902084552349842423537993374653390567505480762768500834468675948953728201690076158994534550340164557316532932150128341997857758810165219963431517272160694101665443825204072109190752166657509623924996785239391460075558835204727278770380388491825235557016441805249597906104888699461348226854091083203088058820601118720</subscript>
+      <br/>
+      <br/>
+      Any string that finishes the game before the input is complete should not be accepted.
+      \begin{array}{cc}
+        \delta(q_\text{accept}, \sigma) \to q_\text{reject} & \sigma \in \Sigma
+      \end{array}
+
+      <h3 id="reject">Reject Strings.</h3>
+      The finite automaton rejects any set of inputs that either never enters the accept state or continues after entering the accept state. A special \(q_\text{reject}\) state after the <a href="#accept">accept state</a> is enumerated to \(|Q| - 1\):
+      q<subscript>16563672272219750403525322809157601712925344419975291428732222914102436064320502239029063366713812189588185946501561722485452187616891630802747565804184042568634789856993557761692333291866798808595060380019752197915128309883917492137179816589082536072062093640883082848738304670449442848432880350045409101902084552349842423537993374653390567505480762768500834468675948953728201690076158994534550340164557316532932150128341997857758810165219963431517272160694101665443825204072109190752166657509623924996785239391460075558835204727278770380388491825235557016441805249597906104888699461348226854091083203088058820601118721</subscript>
+
+      \begin{array}{cc}
+        \delta(q_\text{accept}, \sigma) \to q_\text{reject} & \sigma \in \Sigma \\
+        \delta(q_\text{reject}, \sigma) \to q_\text{reject} & \sigma \in \Sigma
+      \end{array}
+
+      Note that this is not the only reject state; any string that does not end in the accept state will be rejected.
+
+      <h2>Try it out:</h2>
+    </intro>
+    <script src="sketch.js"></script>
+    <script src="snake.js"></script>
+    <script src="stats.js"></script>
+    <!-- GitHub Link -->
+  </body>
+  <footer>
+    <a id="gh-link" class="gh-link" href="https://github.com/jamesweber7/Wips-Assembly">
+      <img id="gh-mark" class="gh-mark" alt="GitHub Mark" src="/assets/github-mark-white.png">
+    </a>
+  </footer>
+  
+    
+</html>

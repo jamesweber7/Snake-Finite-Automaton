@@ -1,0 +1,76 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+html {
+  background-color: rgb(24, 24, 24);
+  color: #d4d4d4;
+}
+
+intro {
+  margin:10px;
+  display: block;
+  padding: 10px;
+  word-wrap: break-word;
+  margin-bottom: 30px;
+  font-size: 20px;
+}
+
+intro subscript {
+  font-size: 10px;
+}
+
+intro exponent {
+  font-size: 10px;
+  vertical-align: top;
+}
+
+intro img {
+  display: block;
+  margin: 10px auto 10px auto;
+}
+
+intro blockquote {
+  font-family:'Courier New', Courier, monospace;
+}
+
+intro a {
+  color: #d4d4d4;
+}
+
+#inputs left{
+  display: inline-block;
+  float: left;
+  width: 15%;
+}
+#inputs right{
+  display: inline-block;
+  float: right;
+  width: 85%;
+}
+
+canvas {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border: 2px solid white;
+}
+
+#gh-link {
+  display: block;
+  margin: 0 30px 15px auto;
+  width: 128px;
+  opacity: 0.5;
+}
+
+#gh-link:hover {
+  opacity: 0.6;
+}
+
+#gh-mark {
+  width: 100%;
+}
