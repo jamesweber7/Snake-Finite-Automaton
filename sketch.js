@@ -270,9 +270,6 @@ function keyPressed(e) {
 
   if (isReadyToPlay())
     return readyToPlayKeyPressed();
-
-  print(key);
-
 }
 
 function playingGameKeyPressed() {
@@ -329,9 +326,6 @@ function mousePressed() {
     return;
   if (mouseY < 0 || mouseY > height)
     return;
-
-  print(round(mouseX / width, 2) + ", " + round(mouseY / height, 2));
-  print(mouseX, mouseY);
 
   for (let i = 0; i < buttons.length; i++) {
     let x1 = buttons[i].x1;

@@ -15,7 +15,7 @@ const NUM_SECOND_CHANCE_STATES = 2;
 const NUM_APPLE_POSITION_STATES = w * h;
 // [0, w-1][0, h-1]
 const NUM_SNAKE_HEAD_POSITION_STATES = w * h;
-// NUM_DIRECTION_STATES^(w x h - 1)
+// \Sigma_{i=0}^1007{4^{i}} = (4^1008 - 1) / 3
 const NUM_SNAKE_BODY_STATES = 4n**BigInt(w * h - 1 + 1) / 3n;
 
 // accept state, state matrix
@@ -96,11 +96,6 @@ function update_fa() {
 
     // move head
     moveHead();
-
-    if (fa.q.second_chance) {
-        fa.q.direction = fa.last_q.direction;
-        return;
-    }
 
     if (isKilled())
         return;
