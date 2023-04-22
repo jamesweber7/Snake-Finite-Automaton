@@ -21,15 +21,24 @@
       <h1>Snake Game Finite Automaton.</h1>
 
       <h2>Goal.</h2>
-      Construct a finite automaton representing the snake game. The automaton should accept the language: 
+      Construct a finite automaton representing the snake game.
+
+      <h3>Snake Game Rules.</h3>
+      A snake and an apple exist on a \(42 \times 24\) board. The snake can move in four directions: up, down, left, and right. The snake's goal is to eat apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is spawned into randomly generated open space on the board, the player scores 5 points, and the snake grows in length by 5. Also, if the snake is about to collide with an itself or a wall, it is given a second chance lasting one game tick to change direction before the collision occurs.
+
+      <h2>Finite Automaton.</h2>
+      The automaton should accept the language: 
       \[
         L = \{ w \in \{ \text{↑, →, ↓, ←, ␀} \}^* | w = \text{ a series of inputs that play the snake game exactly to completion} \} 
       \]
-
-      <h2>Rules.</h2>
-      The snake moves about the \(42 \times 24\) board and eats apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is generated, the player scores 5 points, and the snake grows in length by 5.
-
-      <h2>Finite Automaton.</h2>
+      The automaton is a DFA represented as a 5-tuple \((Q, \Sigma, \delta, q_0, F)\), where
+      \begin{array}{ll}
+        Q & \text{ is the set of states} \\
+        \Sigma & \text{ is the set of inputs} \\
+        \delta : Q \times \Sigma → Q & \text{ is the transition function between states} \\
+        q_0 & \text{ is the start state} \\
+        F & \text{ is the set of accept states}
+      \end{array}
 
       <h3>Input.</h3>
       The alphabet \(\Sigma\) accepts 5 input characters:
@@ -49,7 +58,25 @@
       Each character in the input string represents the input for a game tick. The NUL character represents a game tick where the player has entered no new direction.
 
       <h3>States And Transitions.</h3>
-      The finite automaton's state is separated into several parts, each with its own set of states and transitions:
+      The finite automaton's state is separated into several parts, each with its own set of states and transitions. The snake game tracks:
+      <div style="display:block;margin-left:15px;font-family:monospace;">
+        the player's score <br/>
+        the snake's direction <br/>
+        the number of pixels in queue incoming to the snake's tail after the snake eats an apple, <br/>
+        the position of the apple <br/>
+        the position of the snake's head and <br/>
+        the location and order of each pixel on the snake's body
+      </div>
+      <br/>
+      The finite automaton's state \(Q\) and transition function \(\delta\) can be constructed from the respective parts:
+      \begin{array}{ll}
+        Q_\text{points} & & & &\delta_\text{points} \\
+        Q_\text{direction} & & & & \delta_\text{direction} \\
+        Q_\text{incoming} & & & & \delta_\text{incoming} \\
+        Q_\text{apple} & & & & \delta_\text{apple} \\
+        Q_\text{head} & & & & \delta_\text{head} \\
+        Q_\text{body} & & & & \delta_\text{body} \\
+      \end{array}
 
       <h4 id="points">Points.</h4>
       The snake starts at 0 points and size 1 (just its head). When the snake eats an apple, the player scores 5 points and increases in size by 5 pixels over the duration of the next five game ticks, at a rate of one pixel per game tick. Because the snake only grows by 1 pixel per game tick, it is possible for the snake to have eaten more than \( ⌊\frac{w \times h - 1}{5}⌋ \) apples while accruing a large number of incoming tail pixels before engulfing the entire board. A state could theoretically occur where the snake, from its starting size of 1, eats an apple every game tick for \( w \times h - 1 = 1007 \) game ticks in a row. Thus, the finite automaton keeps track of \( w \times h - 1 + 1 = 1008 \) states, where the first state \(q_{\text{points } 0}\) represents 0 points and the 1008th state \(q_{\text{points } 1007}\) represents \( (w \times h - 1) \times 5 = 5035 \) points.
@@ -275,7 +302,7 @@
       \begin{array}{ccr}
          & (w \times h - 1 + 1) & \text{points} \\
          & 4 & \text{directions} \\
-         & ⌊(5 \text{ points} - 1 \text{ used point}) \times (\frac{w \times h - 1}{5} \text{ points per apple})⌋ + 1 & \text{incoming points} \\
+         & ⌊(5 \text{ points} - 1 \text{ used point}) \times (\frac{w \times h - 1}{5} \text{ points per apple})⌋ + 1 & \text{incoming tail} \\
          & 2 & \text{second chance states} \\
          & 1008 & \text{apple positions} \\
          & 1008 & \text{head positions}\\
@@ -283,7 +310,7 @@
         \hline
          & 1008 & \text{points} \\
          & 4 & \text{directions} \\
-         & 806 & \text{incoming points} \\
+         & 806 & \text{incoming tail} \\
          & 2 & \text{second chance states} \\
          & 1008 & \text{apple positions} \\
          & 1008 & \text{head positions}\\
