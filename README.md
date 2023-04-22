@@ -1,5 +1,5 @@
 # Snake Game Finite Automaton
-This webpage simulates a finite automaton that uses ≈1.182 E+619 states to represent an implementation of the snake game.
+This webpage simulates a finite automaton that uses ≈1.656 E+619 states to represent an implementation of the snake game.
 
 The snake game is represented by a 5-tuple (Q, Σ, δ, q<sub>0</sub>, F), where:
 - Q is the set of states, which represent:
