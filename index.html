@@ -24,13 +24,16 @@
       Construct a finite automaton representing the snake game.
 
       <h3>Snake Game Rules.</h3>
-      A snake and an apple exist on a \(42 \times 24\) board. The snake can move in four directions: up, down, left, and right. The snake's goal is to eat apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is spawned into randomly generated open space on the board, the player scores 5 points, and the snake grows in length by 5. Also, if the snake is about to collide with an itself or a wall, it is given a second chance lasting one game tick to change direction before the collision occurs.
+      A snake and an apple exist on a \(42 \times 24\) board. The snake can move in four directions: up, down, left, and right. The snake's goal is to eat apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is spawned into a randomly generated open space on the board, the player scores 5 points, and the snake grows in length by 5. Also, if the snake is about to collide with an itself or a wall, it is given a second chance, lasting one game tick, to change direction before the collision occurs.
 
       <h2>Finite Automaton.</h2>
       The automaton should accept the language: 
       \[
         L = \{ w \in \{ \text{↑, →, ↓, ←, ␀} \}^* | w = \text{ a series of inputs that play the snake game exactly to completion} \} 
       \]
+      For example, the automaton should accept the string '↑↑↑', an input in which the snake moves up, collides with the ceiling, and dies. However, the automaton should reject the string '↑↑', in which the game never completes, and '↑↑↑↑', which continues input after the game is complete.
+      <br/>
+      <br/>
       The automaton is a DFA represented as a 5-tuple \((Q, \Sigma, \delta, q_0, F)\), where
       \begin{array}{ll}
         Q & \text{ is the set of states} \\
@@ -62,9 +65,9 @@
       <div style="display:block;margin-left:15px;font-family:monospace;">
         the player's score <br/>
         the snake's direction <br/>
-        the number of pixels in queue incoming to the snake's tail after the snake eats an apple, <br/>
+        the number of incoming pixels the snake needs to grow by <br/>
         the position of the apple <br/>
-        the position of the snake's head and <br/>
+        the position of the snake's head <br/>
         the location and order of each pixel on the snake's body
       </div>
       <br/>
@@ -333,7 +336,7 @@
       \end{array}
 
       \begin{array}{cc}
-       Q = Q_\text{points} \times Q_\text{directions} \times Q_\text{incoming} \times Q_\text{chance} \times Q_\text{apple} \times Q_\text{head} \times Q_\text{body} \cup \{\text{accept}\} \cup \{\text{reject}\}
+       Q = Q_\text{points} \times Q_\text{directions} \times Q_\text{incoming} \times Q_\text{chance} \times Q_\text{apple} \times Q_\text{head} \times Q_\text{body} \cup \{q_\text{accept}\} \cup \{q_\text{reject}\}
       \end{array}
 
       \begin{array}{cc}
@@ -343,24 +346,43 @@
       <h3 id="enumeration">Enumerating States.</h3>
       States are enumerated as follows:
       \begin{array}{cc}
-       &  &  &  &  &  &  &  &  &  &  &  &  & q_{\text{snake_body}} \\
-       &  &  &  &  &  &  &  &  &  &  & q_{\text{head}} & \times & |Q_{\text{snake_body}}| \\
-       &  &  &  &  &  &  &  &  & q_{\text{apple}} & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
-       &  &  &  &  &  &  & q_{\text{chance}} & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
-       &  &  &  &  & q_{\text{incoming}} & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
-       &  &  & q_{\text{direction}} & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
-      + & q_{\text{points}} & \times & |Q_{\text{direction}}| & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{snake_body}}| \\
+       &  &  &  &  &  &  &  &  &  &  &  &  & q_{\text{body}} \\
+       &  &  &  &  &  &  &  &  &  &  & q_{\text{head}} & \times & |Q_{\text{body}}| \\
+       &  &  &  &  &  &  &  &  & q_{\text{apple}} & \times & |Q_{\text{head}}| & \times & |Q_{\text{body}}| \\
+       &  &  &  &  &  &  & q_{\text{chance}} & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{body}}| \\
+       &  &  &  &  & q_{\text{incoming}} & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{body}}| \\
+       &  &  & q_{\text{direction}} & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{body}}| \\
+      + & q_{\text{points}} & \times & |Q_{\text{direction}}| & \times & |Q_{\text{incoming}}| & \times & |Q_{\text{chance}}| & \times & |Q_{\text{apple}}| & \times & |Q_{\text{head}}| & \times & |Q_{\text{body}}| \\
       \hline \\
       \end{array}
 
       \begin{array}{cc}
         \text{subscript } i \text{ for state } q_i \in Q
       \end{array}
+
+      <br/>
+      Conversely, the game's state can be resolved from \(\text{subscript } i \text{ for state } q_i \in Q\):
+
+      \begin{array}{llccccc}
+        q_{\text{body } b} & b = & i & \text{mod} & |Q_\text{body}| & & & & & & & & & & & & \\
+
+        q_{\text{head } h} & h = & i & \div & |Q_\text{body}| & \text{mod} & |Q_\text{head}| & & & & & & & & & & \\
+
+        q_{\text{apple } a} & a = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \text{mod} & |Q_\text{apple}| & & & & & & & & \\
+
+        q_{\text{chance } c} & c = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \div & |Q_\text{apple}| & \text{mod} & |Q_\text{chance}| & & & & & & \\
+
+        q_{\text{incoming } t} & t = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \div & |Q_\text{apple}| & \div & |Q_\text{chance}| & \text{mod} & |Q_\text{incoming}| & & & & \\
+
+        q_{\text{direction } d} & d = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \div & |Q_\text{apple}| & \div & |Q_\text{chance}| & \div & |Q_\text{incoming}| & \text{mod} & |Q_\text{direction}| & & \\
+
+        q_{\text{points } p} & p = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \div & |Q_\text{apple}| & \div & |Q_\text{chance}| & \div & |Q_\text{incoming}| & \div & |Q_\text{direction}| & \text{mod} & |Q_\text{points}| \\
+      \end{array}
       
       Exceptions are the special <a href="#reject">reject state</a> and the <a href="#accept">accept state</a>, which represent no specific orientation of body, head, etc., but instead acknowledge that the game has been played to or past completion. These states are enumerated to \(|Q|-1\) and \(|Q|-2\) respectively.
 
       <h3>Start State.</h3>
-      The finite automaton starts with the snake's head at position (1,1) \(q_{\text{head43}}\), direction right \(q_{\text{direction1}}\), no pixels in the incoming tail queue \(q_{\text{incoming0}}\), not on second chance \(q_{\text{chance0}}\), apple at (9, 8) \(q_{\text{apple345}}\), and no pixels in the snake's body \(q_{\text{snake_body0}}\). This maps to: 
+      The finite automaton starts with the snake's head at position (1,1) \(q_{\text{head} 43}\), direction right \(q_{\text{direction} 1}\), no pixels in the incoming tail queue \(q_{\text{incoming} 0}\), not on second chance \(q_{\text{chance} 0}\), apple at (9, 8) \(q_{\text{apple } 345}\), and no pixels in the snake's body \(q_{\text{body } 0}\). This maps to: 
       <br/>
       \(q_0\): q<subscript>4108925974003472556773404746808833763787617692495985444441148743688769654871379890896319949479361638064287131922455513105965401326299216806527210731096237857313165435920146766476351189771345822380699120818447825508077119369895428462409196769977258605605312902380229810044978492858059814417094769528986693047498998786305292043206924956711135743542042797261538201549417874193988912926794849482761771852157460461628595532708149461362055519630505538438469758357302393592109465778422183064354619614692808600292246479252744152223017655512046438783807376315126596298012468218343832191646560532271919661003104773832509541495</subscript>
 
@@ -396,9 +418,6 @@
       \end{array}
 
       Note that this is not the only reject state; any string that does not end in the accept state will be rejected.
-      \[
-        F \neq Q - \{q_\text{reject}\}
-      \]
 
       <h2>Try it out:</h2>
     </intro>
