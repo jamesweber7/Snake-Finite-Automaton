@@ -147,7 +147,6 @@ function moveHead() {
             nextPos.y ++;
             break;
     }
-    // if (collision(nextPos)) {
     if (collision(fa.q.snake_head_position)) {
         if (fa.q.second_chance) {
             gameOver();

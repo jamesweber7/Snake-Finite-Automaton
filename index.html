@@ -88,7 +88,7 @@
         Q_\text{points} = \{ 0, 1, \ldots , 1007 \}
       \end{array}
 
-      The \(i\)th state \(q_{\text{points } i}\), representing \( i \times 5 \) points, transitions to itself if the snake does not eat an apple, and transitions to the next state \(q_{\text{points } i+1}\) if the snake eats an apple.
+      The \((i+1)\)th state \(q_{\text{points } i}\), representing \( i \times 5 \) points, transitions to itself if the snake does not eat an apple, and transitions to the next state \(q_{\text{points } i+1}\) if the snake eats an apple.
 
       \begin{array}{cc}
         \delta_\text{points} : Q_\text{points} \times \{ \text{snake eats apple}, \text{snake does not eat apple} \} \to Q_\text{points}
@@ -123,7 +123,7 @@
       \end{array}
 
       <h4 id="incoming_tail">Incoming Tail.</h4>
-      After a snake eats an apple, the snake's body increases in length by five pixels over the duration of the next five game ticks. Because a snake could eat an apple and then eat another apple within the next five game ticks, it could potentially have more than four incoming pixels at some point. A state could theoretically occur where a snake, from its starting size of 1, could eat an apple every game tick for 202 ticks in a row, adding 5 to and spending 1 from its incoming tail size each time, until the snake has a size of 203 and an incoming tail size of 808. Because the snake's maximum size is \(w \times h = 1008\), the this leads to a maximum incoming tail size of 1008 - 203 = 805, and thus 805 + 1 = 806 states are used to keep track of incoming tail size. This is given by the formula 
+      After a snake eats an apple, the snake's body increases in length by five pixels over the duration of the next five game ticks. Because a snake could eat an apple and then eat another apple within the next five game ticks, it could potentially have more than four incoming pixels at some point. A state could theoretically occur where a snake, from its starting size of 1, could eat an apple every game tick for 202 ticks in a row, adding 5 to and spending 1 from its incoming tail size each time, until the snake has a size of 203 and an incoming tail size of 808. Because the snake's maximum size is \(w \times h = 1008\), this leads to a maximum incoming tail size of 1008 - 203 = 805, and thus 805 + 1 = 806 states are used to keep track of incoming tail size. This is given by the formula 
 
       \begin{array}{cc}
         |Q_\text{incoming}| = ⌊(5 \text{ possible incoming points } - 1 \text{ used incoming point }) \times \frac{w \times h - 1 \text{ start size (head) }}{5 \text{ points per apple }}⌋ + 1
@@ -133,20 +133,21 @@
         Q_\text{incoming} = \{ 0, 1, \ldots, 805 \}
       \end{array}
 
-      If the current state is the state representing an incoming tail of length \(i > 0\), \(q_{\text{incoming } i}\), it will transition to \(q_{\text{incoming } i-1}\) if the snake does not eat an apple.
+      If a collision occurs, the snake will not move, and the current state will not change. If the current state is the state representing an incoming tail of length \(i > 0\), \(q_{\text{incoming } i}\), it will transition to \(q_{\text{incoming } i-1}\) if the snake does not eat an apple.
       \(q_{\text{incoming } 0}\) will transition to itself if the snake does not eat an apple.
       For any \(q_{\text{incoming } i} \in Q_\text{incoming}\), the snake transitions to \(q_{\text{incoming } i+4}\) if the snake eats an apple.
 
       \begin{array}{cc}
-        \delta_\text{incoming} : Q_\text{incoming} \times \{ \text{snake eats apple}, \text{snake does not eat apple} \} \to Q_\text{incoming}
+        \delta_\text{incoming} : Q_\text{incoming} \times \{ \text{snake eats apple}, \text{snake does not eat apple} \} \times \{ \text{collision occurs}, \text{collision does not occur} \} \to Q_\text{incoming}
       \end{array}
 
       <br/>
       \begin{array}{lll}
-        \delta_\text{incoming}(q_{\text{incoming }0}, \text{snake does not eat apple}) & \to q_{\text{incoming }0} & \\
-        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake does not eat apple}) & \to q_{\text{incoming }i-1} & i \geq 1 \\
-        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}) & \to q_{\text{incoming }i+4} & i \leq 801 \\
-        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}) & \to q_{\text{incoming }805} & i \gt 801 \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake does or does not eat apple}, \text{collision occurs}) & \to q_{\text{incoming }i} & \\
+        \delta_\text{incoming}(q_{\text{incoming }0}, \text{snake does not eat apple}, \text{collision does not occur}) & \to q_{\text{incoming }0} & \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake does not eat apple}, \text{collision does not occur}) & \to q_{\text{incoming }i-1} & i \geq 1 \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}, \text{collision does not occur}) & \to q_{\text{incoming }i+4} & i \leq 801 \\
+        \delta_\text{incoming}(q_{\text{incoming }i}, \text{snake eats apple}, \text{collision does not occur}) & \to q_{\text{incoming }805} & i \gt 801 \\
       \end{array}
 
       <h4 id="second_chance">Second Chance.</h4>
@@ -160,19 +161,19 @@
       The second chance state always transitions to off if it does not collide with an obstacle.
 
       \begin{array}{cc}
-        \delta_\text{chance} : Q_\text{chance} \times \{ \text{snake collides}, \text{snake does not collide} \} \to Q_\text{chance}
+        \delta_\text{chance} : Q_\text{chance} \times \{ \text{collision occurs}, \text{collision does not occur} \} \to Q_\text{chance}
       \end{array}
       <br/>
 
       \begin{array}{lll}
-        \delta_\text{chance}(q_{\text{chance } i}, \text{snake does not collide}) & \to q_\text{chance off} & q_{\text{chance } i} \in Q_\text{chance} \\
-        \delta_\text{chance}(q_{\text{chance off}}, \text{snake collides}) & \to q_\text{chance on} &
+        \delta_\text{chance}(q_{\text{chance } i}, \text{collision does not occur}) & \to q_\text{chance off} & q_{\text{chance } i} \in Q_\text{chance} \\
+        \delta_\text{chance}(q_{\text{chance off}}, \text{collision occurs}) & \to q_\text{chance on} &
       \end{array}
 
-      If the second chance state is on and the snake collides with an obstacle, the <a href="#combination">final automaton</a> \(Q\) transitions to its <a href="#accept">accept state</a>.
+      If the second chance state is on and the snake collides with an obstacle, the <a href="#combination">final automaton</a> transitions to its <a href="#accept">accept state</a>.
 
       \begin{array}{lll}
-        \delta(q_{\text{chance on}}, \text{snake collides}) & \to q_\text{accept} & q_\text{accept} \in F \subset Q
+        \delta(q_{\text{chance on}}, \text{collision occurs}) & \to q_\text{accept} & q_\text{accept} \in F \subset Q
       \end{array}
 
 
@@ -283,7 +284,7 @@
         q_{\text{body}(\text{size } n, \text{representation } r)} = r + \sum_{i=0}^{n - 1}{ 4^i } = r + \frac{4^n - 1}{3}
       \]
 
-      If the snake enters the <a href="#second_chance">second chance</a> state, the snake's body transitions to itself. Otherwise, the snake's body will gain the pixel where was the snake's head was during the last game tick. If the <a href="#incoming_tail">incoming tail</a> is 0, the snake's body will lose the pixel at the end of its tail. The body's new state represents this new orientation.
+      If the snake enters the <a href="#second_chance">second chance</a> state, the snake's body transitions to itself. Otherwise, the snake's body will gain the pixel where the snake's head was during the last game tick. If the <a href="#incoming_tail">incoming tail</a> is 0, the snake's body will lose the pixel at the end of its tail. The body's new state represents this new orientation.
 
       \begin{array}{cc}
         \delta_\text{body} : Q_\text{body} \times Q_\text{direction} \times Q_\text{incoming} \times Q_\text{chance} \to Q_\text{body}
@@ -339,10 +340,6 @@
        Q = Q_\text{points} \times Q_\text{directions} \times Q_\text{incoming} \times Q_\text{chance} \times Q_\text{apple} \times Q_\text{head} \times Q_\text{body} \cup \{q_\text{accept}\} \cup \{q_\text{reject}\}
       \end{array}
 
-      \begin{array}{cc}
-        \delta: Q \times \Sigma \to Q
-      \end{array}
-
       <h3 id="enumeration">Enumerating States.</h3>
       States are enumerated as follows:
       \begin{array}{cc}
@@ -379,10 +376,10 @@
         q_{\text{points } p} & p = & i & \div & |Q_\text{body}| & \div & |Q_\text{head}| & \div & |Q_\text{apple}| & \div & |Q_\text{chance}| & \div & |Q_\text{incoming}| & \div & |Q_\text{direction}| & \text{mod} & |Q_\text{points}| \\
       \end{array}
       
-      Exceptions are the special <a href="#reject">reject state</a> and the <a href="#accept">accept state</a>, which represent no specific orientation of body, head, etc., but instead acknowledge that the game has been played to or past completion. These states are enumerated to \(|Q|-1\) and \(|Q|-2\) respectively.
+      Exceptions are the special <a href="#reject">reject state</a> and the <a href="#accept">accept state</a>, which represent no specific orientation of body, head, etc., but instead signify that the game has been played to or past completion. These states are enumerated to \(|Q|-1\) and \(|Q|-2\) respectively.
 
       <h3>Start State.</h3>
-      The finite automaton starts with the snake's head at position (1,1) \(q_{\text{head} 43}\), direction right \(q_{\text{direction} 1}\), no pixels in the incoming tail queue \(q_{\text{incoming} 0}\), not on second chance \(q_{\text{chance} 0}\), apple at (9, 8) \(q_{\text{apple } 345}\), and no pixels in the snake's body \(q_{\text{body } 0}\). This maps to: 
+      The finite automaton starts with the snake's head at position (1,1) \(q_{\text{head } 43}\), direction right \(q_{\text{direction } 1}\), no pixels in the incoming tail queue \(q_{\text{incoming } 0}\), not on second chance \(q_{\text{chance } 0}\), apple at (9, 8) \(q_{\text{apple } 345}\), and no pixels in the snake's body \(q_{\text{body } 0}\). This maps to: 
       <br/>
       \(q_0\): q<subscript>4108925974003472556773404746808833763787617692495985444441148743688769654871379890896319949479361638064287131922455513105965401326299216806527210731096237857313165435920146766476351189771345822380699120818447825508077119369895428462409196769977258605605312902380229810044978492858059814417094769528986693047498998786305292043206924956711135743542042797261538201549417874193988912926794849482761771852157460461628595532708149461362055519630505538438469758357302393592109465778422183064354619614692808600292246479252744152223017655512046438783807376315126596298012468218343832191646560532271919661003104773832509541495</subscript>
 
@@ -418,6 +415,142 @@
       \end{array}
 
       Note that this is not the only reject state; any string that does not end in the accept state will be rejected.
+
+      <h3 id="transition">Transition Function.</h3>
+      Now the final transition function can be defined.
+      \begin{array}{cc}
+        \delta: Q \times \Sigma \to Q
+      \end{array}
+      <blockquote id="transition-algorithm">
+        <div style="font-size:30px;">\(\delta(q_i, \sigma):\) <br/></div>
+        &nbsp;  if \(i \lt |Q| - 2\) <br/>
+        &nbsp;  &nbsp; // define current game state <br/>
+        &nbsp;  &nbsp;  <left>\(q_{\text{body } b}\):</left><right>\( b = i \text{ mod } |Q_\text{body}| \)</right> <br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{head } h}\):</left><right>\( h = i \div |Q_\text{body}| \text{ mod } |Q_\text{head}| \)</right><br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{apple } a}\):</left><right>\( a = i \div |Q_\text{body}| \div |Q_\text{head}| \text{ mod } |Q_\text{apple}| \)</right><br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{chance } c}\):</left><right>\( c = i \div |Q_\text{body}| \div |Q_\text{head}| \div |Q_\text{apple}| \text{ mod } |Q_\text{chance}| \)</right><br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{incoming } t}\):</left><right>\( t = i \div |Q_\text{body}| \div |Q_\text{head}| \div |Q_\text{apple}| \div |Q_\text{chance}| \text{ mod } |Q_\text{incoming}| \)</right><br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{direction } d}\):</left><right>\( d = i \div |Q_\text{body}| \div |Q_\text{head}| \div |Q_\text{apple}| \div |Q_\text{chance}| \div |Q_\text{incoming}| \text{ mod } |Q_\text{direction}| \)</right><br/>
+
+        &nbsp;  &nbsp;  <left>\(q_{\text{points } p}\):</left><right>\( p = i \div |Q_\text{body}| \div |Q_\text{head}| \div |Q_\text{apple}| \div |Q_\text{chance}| \div |Q_\text{incoming}| \div |Q_\text{direction}| \text{ mod } |Q_\text{points}| \)</right><br/>
+
+        <br/>
+
+        &nbsp; &nbsp; // next direction <br/>
+        &nbsp; &nbsp; \(d' = \delta_\text{direction}(q_{\text{direction } d}, \sigma)\) <br/>
+
+        <br/>
+
+        &nbsp; &nbsp; // next head (if collision does not occur)<br/>
+        &nbsp; &nbsp; if \(d'.\text{direction} = ↑\) (\(d' = 0\)) <br/>
+        &nbsp; &nbsp; &nbsp; \(h_0 = h - 1 \times w\) <br/>
+        &nbsp; &nbsp; if \(d'.\text{direction} = →\) (\(d' = 1\)) <br/>
+        &nbsp; &nbsp; &nbsp; \(h_0 = h + 1\) <br/>
+        &nbsp; &nbsp; if \(d'.\text{direction} = ↓\) (\(d' = 2\)) <br/>
+        &nbsp; &nbsp; &nbsp; \(h_0 = h + 1 \times w\) <br/>
+        &nbsp; &nbsp; if \(d'.\text{direction} = ←\) (\(d' = 3\)) <br/>
+        &nbsp; &nbsp; &nbsp; \(h_0 = h - 1\) <br/>
+        <br/> 
+        &nbsp; &nbsp; // check for collision <br/>
+        &nbsp; &nbsp; \((x', y') = (h_0 \text{ mod } w, \lfloor h_0 \div w \rfloor)\) <br/>
+        <br/>
+        &nbsp; &nbsp; // collision with wall <br/>
+        &nbsp; &nbsp; if \(x' \notin [0, w - 1]\) <br/>
+        &nbsp; &nbsp; &nbsp; \(\text{collision occurs}\)  <br/>
+        &nbsp; &nbsp; if \(y' \notin [0, h - 1]\) <br/>
+        &nbsp; &nbsp; &nbsp; \(\text{collision occurs}\)  <br/>
+        <br/>
+        &nbsp; &nbsp; // collision with tail <br/>
+        &nbsp; &nbsp; \(\text{size } = \lfloor\log_4{(3b + 1)}\rfloor = p \times 5 - t\) (two methods of determining size)<br/>
+        &nbsp; &nbsp; let \(r = b - \frac{4^n-1}{3}\) // quaternary representation of body with \(\text{size}\) digits<br/>
+        &nbsp; &nbsp; let \(p = (x', y')\) <br/>
+        &nbsp; &nbsp; for \(j \in [0, \text{size}-1]\) <br/>
+        &nbsp; &nbsp; &nbsp; let \(d_j = \lfloor\frac{r \text{ mod } 4^{j+1}}{4^j}\rfloor\) // direction of pixel \(j\) = (\(j + 1\))th digit of \(r\)<br/>
+        <br/>
+        &nbsp; &nbsp; &nbsp; // unshift pixel \(p\) (shift \(p\) opposite of direction \(d_j\)) <br/>
+        &nbsp; &nbsp; &nbsp; if \(d_j.\text{direction} = ↑\) (\(d_j = 0\)) <br/>
+        &nbsp; &nbsp; &nbsp; &nbsp; \(p.y = p.y + 1\) // shift down <br/>
+        &nbsp; &nbsp; &nbsp; if \(d_j.\text{direction} = →\) (\(d_j = 1\)) <br/>
+        &nbsp; &nbsp; &nbsp; &nbsp; \(p.x = p.x - 1\) // shift left <br/>
+        &nbsp; &nbsp; &nbsp; if \(d_j.\text{direction} = ↓\) (\(d_j = 2\)) <br/>
+        &nbsp; &nbsp; &nbsp; &nbsp; \(p.y = p.y - 1\) // shift up <br/>
+        &nbsp; &nbsp; &nbsp; if \(d_j.\text{direction} = ←\) (\(d_j = 3\)) <br/>
+        &nbsp; &nbsp; &nbsp; &nbsp; \(p.x = p.x + 1\) // shift right <br/>
+        <br/>
+        &nbsp; &nbsp; &nbsp; if \(h_0 = p\) <br/>
+        &nbsp; &nbsp; &nbsp; &nbsp; \(\text{collision occurs}\) <br/>
+
+        <br/>
+        &nbsp; &nbsp; // next chance <br/>
+        &nbsp; &nbsp; if \(\text{collision occurs}\) AND \(c.\text{chance} = \text{off}\) <br/>
+        &nbsp; &nbsp; &nbsp; \(c' = \delta_\text{chance}(c, \text{collision occurs})\) <br/>
+        &nbsp; &nbsp; otherwise if \(\text{collision does not occur}\) <br/>
+        &nbsp; &nbsp; &nbsp; \(c' = \delta_\text{chance}(c, \text{collision does not occur})\) <br/>
+        <br/>
+        &nbsp; &nbsp; // next head <br/>
+        &nbsp; &nbsp; \(h' = \delta_\text{head}(q_{\text{head } h}, q_{\text{direction } d'}, q_{\text{chance } c'})\) <br/>
+        <br/>
+        &nbsp; &nbsp; // next apple <br/>
+        &nbsp; &nbsp; \(a' = \delta_\text{apple}(q_{\text{apple } a}, q_{\text{head } h'})\) <br/>
+        <br/>
+        &nbsp; &nbsp; if \(a = h'\) <br/>
+        &nbsp; &nbsp; &nbsp; \(\text{snake eats apple}\)<br/>
+        &nbsp; &nbsp; otherwise <br/>
+        &nbsp; &nbsp; &nbsp; \(\text{snake does not eat apple}\)<br/>
+
+        <br/>
+        &nbsp; &nbsp; // next points <br/>
+        &nbsp; &nbsp; if \(\text{snake eats apple}\) <br/>
+        &nbsp; &nbsp; &nbsp; \(p' = \delta_\text{points}(q_{\text{points } p}, \text{snake eats apple})\) <br/>
+        &nbsp; &nbsp; otherwise <br/>
+        &nbsp; &nbsp; &nbsp; \(p' = \delta_\text{points}(q_{\text{points } p}, \text{snake does not eat apple})\) <br/>
+
+        <br/>
+        &nbsp; &nbsp; // next incoming tail <br/>
+        &nbsp; &nbsp; if \(\text{collision occurs}\) <br/>
+        &nbsp; &nbsp; &nbsp; \(t' = \delta_\text{incoming}(q_{\text{incoming } t}, \text{snake does not eat apple}, \text{collision occurs})\) <br/>
+        &nbsp; &nbsp; otherwise if \(\text{snake eats apple}\) <br/>
+        &nbsp; &nbsp; &nbsp; \(t' = \delta_\text{incoming}(q_{\text{incoming } t}, \text{snake eats apple}, \text{collision does not occur})\) <br/>
+        &nbsp; &nbsp; otherwise <br/>
+        &nbsp; &nbsp; &nbsp; \(t' = \delta_\text{incoming}(q_{\text{incoming } t}, \text{snake does not eat apple}, \text{collision does not occur})\) <br/>
+
+        <br/>
+        &nbsp; &nbsp; // next body <br/>
+        &nbsp; &nbsp; \(b' = \delta_\text{body}(q_{\text{body } b}, q_{\text{direction } d'}, q_{\text{incoming } t'}, q_{\text{chance } c'})\) <br/>
+
+        <br/>
+        <br/>
+
+        &nbsp;  if \(c.\text{chance} = \text{on}\) AND \(\text{collision occurs}\) <br/>
+        &nbsp;  &nbsp; \(i' = |Q| - 2\) (accept state)  <br/>
+        &nbsp;  otherwise if \(i = |Q| - 2\) (accept state)  <br/>
+        &nbsp;  &nbsp;  \(i' = |Q| - 1\) (reject state) <br/>
+        &nbsp;  otherwise if \(i = |Q| - 1\) (reject state)  <br/>
+        &nbsp;  &nbsp;  \(i' = |Q| - 1\) (reject state) <br/>
+        
+        &nbsp;  otherwise <br/>
+        
+
+        &nbsp; &nbsp; // enumerate next state \(q_{i'}\)<br/>
+        &nbsp; &nbsp; \(i' = b'\) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times h'\) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times |Q_\text{head}| \times a'\) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times |Q_\text{head}| \times |Q_\text{apple}| \times c'\) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times |Q_\text{head}| \times |Q_\text{apple}| \times |Q_\text{chance}| \times t' \) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times |Q_\text{head}| \times |Q_\text{apple}| \times |Q_\text{chance}| \times |Q_\text{incoming}| \times d' \) <br/>
+        &nbsp; &nbsp; &nbsp; \(+ |Q_\text{body}| \times |Q_\text{head}| \times |Q_\text{apple}| \times |Q_\text{chance}| \times |Q_\text{incoming}| \times |Q_\text{direction}| \times p' \) <br/>
+
+        &nbsp;  <div style="font-size:30px;">\(\delta(q_i, \sigma) \to q_{i'}\)</div>
+      </blockquote>
+
+      <br/>
+      <br/>
+      <br/>
 
       <h2>Try it out:</h2>
     </intro>
