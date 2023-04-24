@@ -24,7 +24,7 @@
       Construct a finite automaton representing the snake game.
 
       <h3>Snake Game Rules.</h3>
-      A snake and an apple exist on a \(42 \times 24\) board. The snake can move in four directions: up, down, left, and right. The snake's goal is to eat apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is spawned into a randomly generated open space on the board, the player scores 5 points, and the snake grows in length by 5. Also, if the snake is about to collide with an itself or a wall, it is given a second chance, lasting one game tick, to change direction before the collision occurs.
+      A snake and an apple exist on a \(42 \times 24\) board. The snake can move in four directions: up, down, left, and right. The snake's goal is to eat apples without running into itself or the walls. Whenever the snake eats an apple, a new apple is spawned into a randomly generated open space on the board, the player scores 5 points, and the snake grows in length by 5. Also, if the snake is about to collide with itself or a wall, it is given a second chance, lasting one game tick, to change direction before the collision occurs.
 
       <h2>Finite Automaton.</h2>
       The automaton should accept the language: 
@@ -384,7 +384,7 @@
       \(q_0\): q<subscript>4108925974003472556773404746808833763787617692495985444441148743688769654871379890896319949479361638064287131922455513105965401326299216806527210731096237857313165435920146766476351189771345822380699120818447825508077119369895428462409196769977258605605312902380229810044978492858059814417094769528986693047498998786305292043206924956711135743542042797261538201549417874193988912926794849482761771852157460461628595532708149461362055519630505538438469758357302393592109465778422183064354619614692808600292246479252744152223017655512046438783807376315126596298012468218343832191646560532271919661003104773832509541495</subscript>
 
       <h3 id="accept">Accept State.</h3>
-      The finite automaton moves to its accept state when the game ends. This occurs when the snake is already on its second chance and hits itself or a wall. This is enumerated to the \(|Q|\) - 1 (<a href="#reject">reject state</a>) - 1:
+      The finite automaton moves to its accept state when the game ends. This occurs when the snake is already on its second chance and hits itself or a wall. This is enumerated to \(|Q|\) - 1 (<a href="#reject">reject state</a>) - 1:
       <br/>
       \(q_\text{accept}\): 
       q<subscript>16563672272219750403525322809157601712925344419975291428732222914102436064320502239029063366713812189588185946501561722485452187616891630802747565804184042568634789856993557761692333291866798808595060380019752197915128309883917492137179816589082536072062093640883082848738304670449442848432880350045409101902084552349842423537993374653390567505480762768500834468675948953728201690076158994534550340164557316532932150128341997857758810165219963431517272160694101665443825204072109190752166657509623924996785239391460075558835204727278770380388491825235557016441805249597906104888699461348226854091083203088058820601118720</subscript>
@@ -446,7 +446,7 @@
 
         <br/>
 
-        &nbsp; &nbsp; // next head (if collision does not occur)<br/>
+        &nbsp; &nbsp; // next head if collision does not occur<br/>
         &nbsp; &nbsp; if \(d'.\text{direction} = ↑\) (\(d' = 0\)) <br/>
         &nbsp; &nbsp; &nbsp; \(h_0 = h - 1 \times w\) <br/>
         &nbsp; &nbsp; if \(d'.\text{direction} = →\) (\(d' = 1\)) <br/>
@@ -457,6 +457,7 @@
         &nbsp; &nbsp; &nbsp; \(h_0 = h - 1\) <br/>
         <br/> 
         &nbsp; &nbsp; // check for collision <br/>
+        &nbsp; &nbsp; \((x, y) = (h \text{ mod } w, \lfloor h \div w \rfloor)\) <br/>
         &nbsp; &nbsp; \((x', y') = (h_0 \text{ mod } w, \lfloor h_0 \div w \rfloor)\) <br/>
         <br/>
         &nbsp; &nbsp; // collision with wall <br/>
@@ -468,7 +469,7 @@
         &nbsp; &nbsp; // collision with tail <br/>
         &nbsp; &nbsp; \(\text{size } = \lfloor\log_4{(3b + 1)}\rfloor = p \times 5 - t\) (two methods of determining size)<br/>
         &nbsp; &nbsp; let \(r = b - \frac{4^n-1}{3}\) // quaternary representation of body with \(\text{size}\) digits<br/>
-        &nbsp; &nbsp; let \(p = (x', y')\) <br/>
+        &nbsp; &nbsp; let \(p = (x, y)\) <br/>
         &nbsp; &nbsp; for \(j \in [0, \text{size}-1]\) <br/>
         &nbsp; &nbsp; &nbsp; let \(d_j = \lfloor\frac{r \text{ mod } 4^{j+1}}{4^j}\rfloor\) // direction of pixel \(j\) = (\(j + 1\))th digit of \(r\)<br/>
         <br/>

@@ -51,6 +51,14 @@ intro a {
   width: 85%;
 }
 
+#transition-algorithm left {
+  display: inline-block;
+  width: 100px;
+}
+#transition-algorithm right{
+  display: inline-block;
+}
+
 canvas {
   display: block;
   margin-left: auto;
