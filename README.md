@@ -1,5 +1,5 @@
 # Snake Game Finite Automaton
-Video Presentation: [YouTube | Snake Game Finite Automaton](https://www.youtube.com/watch?v=b2EhzNFo5KU)
+Video Presentation: [YouTube | Snake Game Finite Automaton](https://www.youtube.com/watch?v=kmC9GL1Bz0E)
 
 This webpage simulates a finite automaton that uses ≈1.656 E+619 states to represent an implementation of the snake game.
 
@@ -24,4 +24,4 @@ The snake game is represented by a 5-tuple (Q, Σ, δ, q<sub>0</sub>, F), where:
 
 The webpage goes into detail on how the automaton is constructed:
 
-[Check it out](https://main.d2pft706sid2d0.amplifyapp.com/)
+[Check it out](https://snake.jamesweber.dev)
